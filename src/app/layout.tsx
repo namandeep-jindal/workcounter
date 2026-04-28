@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Bug Bounty | Stellar Bounty Platform",
-  description: "Decentralized task management on Soroban",
+  title: "WorkCounter | The Expert Exchange",
+  description: "The premium Expert Exchange for professional work collaboration. Secure rewards on Stellar.",
 };
 
 export default function RootLayout({
@@ -26,6 +26,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
