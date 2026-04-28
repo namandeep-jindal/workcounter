@@ -1,6 +1,8 @@
 #![no_std]
 use soroban_sdk::{contract, contractimpl, Address, Env, String, symbol_short, Symbol};
 
+mod test;
+
 #[contract]
 pub struct WorkToken;
 

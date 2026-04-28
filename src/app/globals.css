@@ -1,62 +1,97 @@
 @import "tailwindcss";
 
 @theme {
-  --color-olive-400: #a3a32a;
-  --color-olive-500: #808000;
-  --color-olive-600: #5c5c00;
-  --color-olive-700: #3d3d00;
+  --color-brand-50: #f0fdf4;
+  --color-brand-100: #dcfce7;
+  --color-brand-500: #10b981;
+  --color-brand-600: #059669;
+  --color-brand-700: #047857;
 
-  --color-sap-400: #7fb041;
-  --color-sap-500: #507D2A;
-  --color-sap-600: #3b5c1f;
-  --color-sap-700: #2a4016;
-
-  --color-deepred-400: #b51a1a;
-  --color-deepred-500: #8B0000;
-  --color-deepred-600: #660000;
-  --color-deepred-700: #4a0000;
+  --color-primary-900: #0f172a;
+  --color-primary-800: #1e293b;
+  
+  --color-accent-500: #6366f1;
+  --color-accent-600: #4f46e5;
 }
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --primary: #507D2A;
-  --accent: #8B0000;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card-bg: #ffffff;
+  --primary: #0f172a;
+  --brand: #10b981;
+  --accent: #6366f1;
+  --primary-glow: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%);
+}
+
+/* Hardware Acceleration & Depth Utilities */
+.accelerate {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+.depth-shadow {
+  box-shadow: 
+    0 10px 30px -10px rgba(0, 0, 0, 0.05),
+    0 20px 40px -15px rgba(0, 0, 0, 0.03);
+}
+
+.premium-blur {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-.brutal-card {
-  background: var(--background);
-  border: 2px solid #507D2A;
-  box-shadow: 6px 6px 0px #808000;
-  transition: all 0.2s ease-in-out;
+/* Premium Soft UI Components */
+.soft-card {
+  background: var(--card-bg);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.brutal-card:hover {
-  transform: translate(-4px, -4px);
-  box-shadow: 10px 10px 0px #8B0000;
+.soft-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.08);
+  border-color: var(--brand);
 }
 
-.brutal-button {
-  border: 2px solid var(--foreground);
-  box-shadow: 4px 4px 0px #507D2A;
-  font-weight: 900;
-  text-transform: uppercase;
-  transition: all 0.1s ease-in-out;
+.soft-button {
+  border-radius: 9999px;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.brutal-button:active {
-  transform: translate(4px, 4px);
-  box-shadow: 0px 0px 0px #507D2A;
+.soft-button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
 }
 
-.brutal-text {
-  color: var(--foreground);
-  text-shadow: 3px 3px 0px #8B0000;
-  letter-spacing: -1px;
+.soft-button:active {
+  transform: translateY(0);
 }
+
+.premium-gradient-text {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass-header {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+

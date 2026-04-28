@@ -2,6 +2,8 @@
 
 **Find Answers. Fund Expertise.**
 
+🌐 **Live Demo**: [workcounter-blond.vercel.app](https://workcounter-blond.vercel.app/)
+
 WorkCounter is a professional, high-fidelity marketplace for work queries and expert collaboration, built on the **Stellar Soroban** network. It bridges the gap between complex problems and specialized knowledge through a secure, escrow-backed reward system.
 
 ![WorkCounter Desktop Hero](./public/assets/desktop_hero.png)
@@ -28,6 +30,24 @@ WorkCounter is fully responsive, bringing the same high-end atmospheric experien
 - **Motion**: Framer Motion (3D Parallax, Physics-based transitions).
 - **Blockchain**: Stellar Soroban (Smart Contracts), Freighter Wallet integration.
 - **Styling**: Custom CSS-in-JS primitives for "Atmospheric" glows and blurs.
+
+## 📜 Contract Addresses
+
+These are the core Soroban smart contract identifiers on Stellar:
+
+| Contract Name | Contract ID (Address) |
+| :--- | :--- |
+| **QueryBoard** | `CA3NRNACCQNILSO253SYYNWZBITCD4GVMMQBLEK2M4PV4YUTAXZONVYT` |
+| **Escrow** | `CBNKNOG37YHDBIAZDMDDLR2CVZ2KVJKASOM2APWSIFZ5ECGIRS3A6B55` |
+| **WorkToken** | `CA26J2YJNTDQONXOCUKHFTQ2SVY4ZHANVIF3VI45LLNT3MYX5KLUFDTJ` |
+
+## 🪙 Token Identifiers (WRKC)
+
+Details regarding the platform's utility token:
+
+- **Asset Code**: `WRKC`
+- **Issuer Address**: `GC2GPSZ6XBU7VNVLNR3EHDUSVSKXFL7ZL2KJVLSFVKYU34KUURY5FAB7`
+- **Token ID (Wrapped/SACP)**: `CA26J2YJNTDQONXOCUKHFTQ2SVY4ZHANVIF3VI45LLNT3MYX5KLUFDTJ`
 
 ## 🏗️ Architecture
 
@@ -64,7 +84,7 @@ WorkCounter is fully responsive, bringing the same high-end atmospheric experien
    Create a `.env.local` file:
    ```env
    NEXT_PUBLIC_SOROBAN_NETWORK=testnet
-   NEXT_PUBLIC_BOUNTY_CONTRACT_ID=...
+   NEXT_PUBLIC_QUERY_BOARD_CONTRACT_ID=
    ```
 
 4. **Run Development Server**

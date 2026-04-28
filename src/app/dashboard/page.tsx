@@ -407,7 +407,7 @@ function DashboardItem({ title, subtitle, status, link, queryId, dbId, isPoster,
                         />
                       </div>
                       <button 
-                        onClick={() => handleApprove(s._id, s.expert, queryId, s.onChainIndex, payoutAmounts[s._id])}
+                        onClick={() => onApprove(s._id, s.expert, queryId, s.onChainIndex, payoutAmounts[s._id])}
                         className="bg-brand-600 text-white text-xs font-black px-8 py-3.5 rounded-2xl hover:bg-brand-700 transition-all shadow-xl shadow-emerald-100 active:scale-[0.98]"
                       >
                         Approve & Pay Expert

@@ -28,8 +28,8 @@ export const WRKC_ASSET = new StellarSdk.Asset("WRKC", WRKC_ISSUER);
 export const CONTRACT_IDS = {
   // Official Soroban Wrapper for WRKC Classic Asset
   WRKC_TOKEN: "CA26J2YJNTDQONXOCUKHFTQ2SVY4ZHANVIF3VI45LLNT3MYX5KLUFDTJ", 
-  ESCROW: "CBWNIZN74EJFJ77GFW3RNDGRCKZL4TOPVA4XGQMYF7CMRPUIT7ZA4KNL",
-  QUERY_BOARD: "CCEMX4RYOES4ZMM3EMZEJ7AB3IRWVPHSJNBU6LLXGWLB7V2VAZNOVFSD"
+  ESCROW: "CBNKNOG37YHDBIAZDMDDLR2CVZ2KVJKASOM2APWSIFZ5ECGIRS3A6B55",
+  QUERY_BOARD: "CA3NRNACCQNILSO253SYYNWZBITCD4GVMMQBLEK2M4PV4YUTAXZONVYT"
 };
 
 export async function connectWallet() {
@@ -225,7 +225,7 @@ export async function createQueryOnChain(reward: string, deadline: string, title
   })
     .addOperation(
       boardContract.call(
-        "create_bounty",
+        "create_query",
         Address.fromString(address).toScVal(), // poster
         nativeToScVal(BigInt(Math.floor(Number(reward) * 10000000)), { type: "i128" }),
         nativeToScVal(Number(deadline), { type: "u64" }),

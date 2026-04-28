@@ -3,13 +3,13 @@ use super::*;
 use soroban_sdk::{testutils::Address as _, Env};
 
 #[test]
-fn test_bounty_creation_lifecycle() {
+fn test_query_creation_lifecycle() {
     let e = Env::default();
     e.mock_all_auths();
 
-    // Register BountyBoard
-    let board_id = e.register_contract(None, BountyBoard);
-    let board_client = BountyBoardClient::new(&e, &board_id);
+    // Register WorkBoard
+    let board_id = e.register_contract(None, WorkBoard);
+    let _board_client = WorkBoardClient::new(&e, &board_id);
 
     // Register a dummy contract for Escrow for the sake of unit testing the board
     // In a real integration test, we'd use the actual WASM.
