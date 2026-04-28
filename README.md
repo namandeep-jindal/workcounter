@@ -1,183 +1,98 @@
-# Bug Bounty: Decentralized Bounty Platform on Stellar 🌌
+# 🌌 WorkCounter | The Expert Exchange
 
-[![CI](https://github.com/akshaykhikhikhi/bug-bounty/actions/workflows/ci.yml/badge.svg)](https://github.com/akshaykhikhikhi/bug-bounty/actions)
+**Find Answers. Fund Expertise.**
 
-**Live App**: [https://bug-bounty.vercel.app/](https://bug-bounty.vercel.app/)
+WorkCounter is a professional, high-fidelity marketplace for work queries and expert collaboration, built on the **Stellar Soroban** network. It bridges the gap between complex problems and specialized knowledge through a secure, escrow-backed reward system.
 
-Bug Bounty is a high-end, decentralized bounty platform built on Stellar Soroban. It enables trustless task management through an inter-contract escrow architecture, combined with a high-performance MongoDB indexing layer for a premium, low-latency user experience.
+![WorkCounter Desktop Hero](./public/assets/desktop_hero.png)
 
-## 🚀 Key Features
-- **🌐 Hybrid On-Chain/Off-Chain Architecture**: Secure fund management on Soroban with real-time indexing via MongoDB.
-- **🛡️ Multi-Step Deployment Wizard**: Secure bounty posting flow including automated Trustlines, XLM-to-BNTY conversion, and Payout Authorization.
-- **📊 Personalized Dashboard**: Advanced management portal for posters to review work (via IPFS) and hunters to track earnings.
-- **⚡ Automated Payouts**: One-click "Approve & Pay" triggers atomic cross-contract fund releases.
+## ✨ Premium Features
 
-## 📱 Previews & Demo
-| Screenshot: mobile responsive view (Feed) | Screenshot: mobile responsive view (Dashboard) |
-|-----------|------------------|
-| ![Mobile Feed](./screenshots/CleanShot%202026-04-25%20at%2000.38.10@2x.png) | ![Dashboard](./screenshots/CleanShot%202026-04-25%20at%2000.38.36@2x.png) |
+- **Interactive Depth GUI**: An atmospheric user interface featuring 3D parallax effects, ambient motion, and a minimalist design aesthetic.
+- **Stellar-Powered Escrow**: All rewards are secured via Soroban smart contracts, ensuring trustless payments upon successful query resolution.
+- **Dynamic 3D Workspace**: Query cards feature physical tilt interactions and staggered entrance animations for a tactile, responsive feel.
+- **Expert-Centric Flow**: Seamlessly transition from "Querying" to "Solving" with a unified dashboard and real-time status tracking.
 
+## 📱 Mobile-First Architecture
 
-## 🏗️ Technical Architecture
-The platform consists of three core Soroban contracts and a synchronized metadata layer:
+WorkCounter is fully responsive, bringing the same high-end atmospheric experience to mobile devices.
 
-1. **BountyToken (`CA26J2YJNTDQONXOCUKHFTQ2SVY4ZHANVIF3VI45LLNT3MYX5KLUFDTJ`)**: SEP-41 utility token for rewards.
-2. **Escrow (`CBNKNOG37YHDBIAZDMDDLR2CVZ2KVJKASOM2APWSIFZ5ECGIRS3A6B55`)**: A vault that holds funds and only releases them via `BountyBoard` authorized calls.
-3. **BountyBoard (`CA3NRNACCQNILSO253SYYNWZBITCD4GVMMQBLEK2M4PV4YUTAXZONVYT`)**: The central engine handling submissions and atomic approvals.
+<p align="center">
+  <img src="./public/assets/mobile_hero.png" width="300" />
+  <img src="./public/assets/mobile_list.png" width="300" />
+</p>
 
-### Inter-Contract Escrow (Atomic Release)
-When a poster approves a submission, the BountyBoard contract triggers a cross-contract call to the Escrow contract.
+## 🛠️ Technology Stack
 
-<details>
-<summary><b>Click to view the full BountyBoard Smart Contract</b></summary>
+- **Frontend**: Next.js 15 (App Router), TypeScript, Tailwind CSS v4.
+- **Motion**: Framer Motion (3D Parallax, Physics-based transitions).
+- **Blockchain**: Stellar Soroban (Smart Contracts), Freighter Wallet integration.
+- **Styling**: Custom CSS-in-JS primitives for "Atmospheric" glows and blurs.
 
-```rust
-#![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, String, Vec, symbol_short};
+## 🏗️ Architecture
 
-mod test;
+### Smart Contracts (Soroban)
+- **WorkBoard**: Manages query creation, metadata storage, and solver indexing.
+- **Escrow**: Handles the lifecycle of WRKC tokens, locking funds during active queries and releasing them upon expert verification.
 
-mod escrow {
-    soroban_sdk::contractimport!(
-        file = "../../target/wasm32v1-none/release/escrow.wasm"
-    );
-}
+### Data Flow
+1. **Initiate**: A user posts a query with a WRKC reward.
+2. **Escrow**: Funds are automatically locked in the Soroban escrow contract.
+3. **Resolve**: Experts submit solutions; the querier verifies and approves.
+4. **Disburse**: The contract releases rewards directly to the expert's wallet.
 
-#[contracttype]
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Bounty {
-    pub poster: Address,
-    pub reward: i128,
-    pub deadline: u64,
-    pub title: String,
-    pub description: String,
-    pub status: u32, // 0: Open, 1: Approved, 2: Disputed
-}
+## 🚀 Getting Started
 
-#[contracttype]
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Submission {
-    pub hunter: Address,
-    pub ipfs_link: String,
-    pub bounty_id: u32,
-    pub approved: bool,
-}
+### Prerequisites
+- Node.js 20+
+- Freighter Wallet (configured for Testnet)
 
-#[contract]
-pub struct BountyBoard;
+### Installation
 
-#[contractimpl]
-impl BountyBoard {
-    pub fn initialize(e: Env, escrow: Address, arbiter: Address) {
-        if e.storage().instance().has(&symbol_short!("escrow")) {
-            panic!("already initialized");
-        }
-        e.storage().instance().set(&symbol_short!("escrow"), &escrow);
-        e.storage().instance().set(&symbol_short!("arbiter"), &arbiter);
-        e.storage().instance().set(&symbol_short!("next_id"), &0u32);
-    }
-
-    pub fn create_bounty(e: Env, poster: Address, reward: i128, deadline: u64, title: String, description: String) -> u32 {
-        poster.require_auth();
-        
-        let id: u32 = e.storage().instance().get(&symbol_short!("next_id")).unwrap();
-        let escrow_addr: Address = e.storage().instance().get(&symbol_short!("escrow")).unwrap();
-        
-        let bounty = Bounty {
-            poster: poster.clone(),
-            reward,
-            deadline,
-            title,
-            description,
-            status: 0,
-        };
-        
-        e.storage().persistent().set(&id, &bounty);
-        e.storage().instance().set(&symbol_short!("next_id"), &(id + 1));
-        
-        // Trigger Escrow deposit: Transfer reward from poster to Escrow
-        let escrow_client = escrow::Client::new(&e, &escrow_addr);
-        escrow_client.deposit(&poster, &reward);
-        
-        id
-    }
-
-    pub fn submit_work(e: Env, hunter: Address, bounty_id: u32, ipfs_link: String) {
-        hunter.require_auth();
-        let submissions_key = (symbol_short!("subs"), bounty_id);
-        let mut subs: Vec<Submission> = e.storage().persistent().get(&submissions_key).unwrap_or(Vec::new(&e));
-        
-        subs.push_back(Submission {
-            hunter,
-            ipfs_link,
-            bounty_id,
-            approved: false,
-        });
-        
-        e.storage().persistent().set(&submissions_key, &subs);
-    }
-
-    pub fn approve_work(e: Env, bounty_id: u32, submission_index: u32, amount: i128) {
-        let mut bounty: Bounty = e.storage().persistent().get(&bounty_id).expect("bounty not found");
-        bounty.poster.require_auth();
-        
-        if bounty.status != 0 {
-            panic!("bounty not open");
-        }
-        
-        let submissions_key = (symbol_short!("subs"), bounty_id);
-        let mut subs: Vec<Submission> = e.storage().persistent().get(&submissions_key).expect("no submissions");
-        
-        let mut sub = subs.get(submission_index).expect("submission not found");
-        sub.approved = true;
-        subs.set(submission_index, sub.clone());
-        
-        e.storage().persistent().set(&submissions_key, &subs);
-        
-        // Call Escrow release
-        let escrow_addr: Address = e.storage().instance().get(&symbol_short!("escrow")).unwrap();
-        let escrow_client = escrow::Client::new(&e, &escrow_addr);
-        escrow_client.release(&sub.hunter, &amount);
-    }
-}
-```
-</details>
-
-## 🛠️ Stack
-- **Smart Contracts**: Rust + Soroban SDK
-- **Frontend**: Next.js 16 (App Router) + Framer Motion
-- **Database**: MongoDB (Secondary Indexing)
-### Network Configuration
-- **Network**: Stellar Testnet
-- **BNTY Asset Code**: `BNTY`
-- **BNTY Issuer**: `GC2GPSZ6XBU7VNVLNR3EHDUSVSKXFL7ZL2KJVLSFVKYU34KUURY5FAB7`
-- **Token or pool address (if custom token or pool deployed)**: `CA26J2YJNTDQONXOCUKHFTQ2SVY4ZHANVIF3VI45LLNT3MYX5KLUFDTJ`
-
-### Contract Addresses
-- **Bounty Board**: `CA3NRNACCQNILSO253SYYNWZBITCD4GVMMQBLEK2M4PV4YUTAXZONVYT`
-- **Escrow**: `CBNKNOG37YHDBIAZDMDDLR2CVZ2KVJKASOM2APWSIFZ5ECGIRS3A6B55`
-
-**Deployment Transaction**: [View on Stellar Expert](https://stellar.expert/explorer/testnet/op/9385761967239169)
-
-## 🏃 Local Development
-
-1. **Contracts**:
+1. **Clone the repository**
    ```bash
-   cd contracts
-   stellar contract build
-   stellar contract test
+   git clone https://github.com/namandeep-jindal/workcounter.git
+   cd workcounter
    ```
 
-2. **Frontend**:
+2. **Install dependencies**
    ```bash
-   cd frontend
    npm install
+   ```
+
+3. **Environment Setup**
+   Create a `.env.local` file:
+   ```env
+   NEXT_PUBLIC_SOROBAN_NETWORK=testnet
+   NEXT_PUBLIC_BOUNTY_CONTRACT_ID=...
+   ```
+
+4. **Run Development Server**
+   ```bash
    npm run dev
    ```
 
-## 📜 License
-MIT
+## 🧪 Testing Contracts
 
+WorkCounter uses Cargo for smart contract development and testing.
 
----
-Triggering Vercel rebuild after git cleanup.
+1. **Navigate to the contracts directory**
+   ```bash
+   cd contracts
+   ```
+
+2. **Run contract tests**
+   ```bash
+   cargo test
+   ```
+
+3. **Check specific contract tests**
+   ```bash
+   cargo test --package work_board
+   ```
+
+## 🔒 Security
+
+WorkCounter implements strict role-based access control and audited escrow logic to protect both queriers and experts. All contract interactions are signed via Freighter, ensuring user-controlled security at every step.
+
+**Built with ❤️ for the Stellar Ecosystem.**
