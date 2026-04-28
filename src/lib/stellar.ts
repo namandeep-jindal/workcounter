@@ -22,14 +22,14 @@ export const RPC_URL = "https://soroban-testnet.stellar.org";
 export const NETWORK_PASSPHRASE = "Test SDF Network ; September 2015";
 export const server = new rpc.Server(RPC_URL);
 
-export const BNTY_ISSUER = "GC2GPSZ6XBU7VNVLNR3EHDUSVSKXFL7ZL2KJVLSFVKYU34KUURY5FAB7";
-export const BNTY_ASSET = new StellarSdk.Asset("BNTY", BNTY_ISSUER);
+export const WRKC_ISSUER = "GC2GPSZ6XBU7VNVLNR3EHDUSVSKXFL7ZL2KJVLSFVKYU34KUURY5FAB7";
+export const WRKC_ASSET = new StellarSdk.Asset("WRKC", WRKC_ISSUER);
 
 export const CONTRACT_IDS = {
-  // Official Soroban Wrapper for BNTY Classic Asset
-  BOUNTY_TOKEN: "CA26J2YJNTDQONXOCUKHFTQ2SVY4ZHANVIF3VI45LLNT3MYX5KLUFDTJ", 
+  // Official Soroban Wrapper for WRKC Classic Asset
+  WRKC_TOKEN: "CA26J2YJNTDQONXOCUKHFTQ2SVY4ZHANVIF3VI45LLNT3MYX5KLUFDTJ", 
   ESCROW: "CBWNIZN74EJFJ77GFW3RNDGRCKZL4TOPVA4XGQMYF7CMRPUIT7ZA4KNL",
-  BOUNTY_BOARD: "CCEMX4RYOES4ZMM3EMZEJ7AB3IRWVPHSJNBU6LLXGWLB7V2VAZNOVFSD"
+  QUERY_BOARD: "CCEMX4RYOES4ZMM3EMZEJ7AB3IRWVPHSJNBU6LLXGWLB7V2VAZNOVFSD"
 };
 
 export async function connectWallet() {
@@ -52,7 +52,7 @@ export async function getConnectedAddress() {
     console.warn("Freighter connection check failed:", e);
   }
   if (typeof window !== "undefined") {
-    return localStorage.getItem("bug_bounty_address") || "";
+    return localStorage.getItem("workcounter_address") || "";
   }
   return "";
 }
@@ -108,9 +108,9 @@ async function signAndSubmit(tx: any) {
   return { hash: sendResponse.hash, ...txResponse };
 }
 
-export async function approveWorkOnChain(bountyId: number, subIndex: number, amount: string) {
-  const BOARD_ID = CONTRACT_IDS.BOUNTY_BOARD;
-  console.log("On-chain approval start:", { bountyId, subIndex, amount, board: BOARD_ID });
+export async function approveWorkOnChain(queryId: number, subIndex: number, amount: string) {
+  const BOARD_ID = CONTRACT_IDS.QUERY_BOARD;
+  console.log("On-chain approval start:", { queryId, subIndex, amount, board: BOARD_ID });
 
   const address = await getConnectedAddress();
   if (!address) throw new Error("Wallet not connected");
@@ -125,7 +125,7 @@ export async function approveWorkOnChain(bountyId: number, subIndex: number, amo
     .addOperation(
       contract.call(
         "approve_work",
-        nativeToScVal(Number(bountyId), { type: "u32" }),
+        nativeToScVal(Number(queryId), { type: "u32" }),
         nativeToScVal(Number(subIndex), { type: "u32" }),
         nativeToScVal(BigInt(Math.floor(Number(amount) * 10000000)), { type: "i128" })
       )
@@ -141,9 +141,9 @@ export async function approveWorkOnChain(bountyId: number, subIndex: number, amo
   return await signAndSubmit(tx);
 }
 
-export async function submitWorkOnChain(bountyId: number, ipfsLink: string) {
-  const BOARD_ID = CONTRACT_IDS.BOUNTY_BOARD;
-  console.log("Submitting work on-chain:", { bountyId, ipfsLink, board: BOARD_ID });
+export async function submitWorkOnChain(queryId: number, ipfsLink: string) {
+  const BOARD_ID = CONTRACT_IDS.QUERY_BOARD;
+  console.log("WorkCounter: Submitting solution on-chain:", { queryId, ipfsLink, board: BOARD_ID });
 
   const address = await getConnectedAddress();
   if (!address) throw new Error("Wallet not connected");
@@ -159,14 +159,14 @@ export async function submitWorkOnChain(bountyId: number, ipfsLink: string) {
       contract.call(
         "submit_work",
         Address.fromString(address).toScVal(), // hunter
-        nativeToScVal(Number(bountyId), { type: "u32" }),
+        nativeToScVal(Number(queryId), { type: "u32" }),
         nativeToScVal(ipfsLink, { type: "string" })
       )
     )
     .setTimeout(TimeoutInfinite)
     .build();
 
-  console.log("Simulating submission...");
+  console.log("WorkCounter: Simulating solution publication...");
   const sim = await server.simulateTransaction(tx);
   if (rpc.Api.isSimulationError(sim)) throw new Error(`Submission simulation failed: ${sim.error}`);
 
@@ -179,13 +179,13 @@ export async function approveEscrow(amount: string) {
   if (!address) throw new Error("Wallet not connected");
 
   const account = await server.getAccount(address);
-  const tokenContract = new Contract(CONTRACT_IDS.BOUNTY_TOKEN);
+  const tokenContract = new Contract(CONTRACT_IDS.WRKC_TOKEN);
   
   // Get current ledger to set a safe expiration for the allowance
   const status = await server.getLatestLedger();
   const expirationLedger = status.sequence + 50000; // ~7 hours in future
 
-  console.log(`Approving Escrow to spend ${amount} BNTY until ledger ${expirationLedger}...`);
+  console.log(`Approving Escrow to spend ${amount} WRKC until ledger ${expirationLedger}...`);
 
   let tx = new TransactionBuilder(account, {
     fee: BASE_FEE,
@@ -210,14 +210,14 @@ export async function approveEscrow(amount: string) {
   return await signAndSubmit(tx);
 }
 
-export async function createBountyOnChain(reward: string, deadline: string, title: string, description: string) {
+export async function createQueryOnChain(reward: string, deadline: string, title: string, description: string) {
   const address = await getConnectedAddress();
   if (!address) throw new Error("Wallet not connected");
 
   const account = await server.getAccount(address);
-  const boardContract = new Contract(CONTRACT_IDS.BOUNTY_BOARD);
+  const boardContract = new Contract(CONTRACT_IDS.QUERY_BOARD);
 
-  console.log("Creating bounty on-chain...");
+  console.log("WorkCounter: Publishing query on-chain...");
 
   let tx = new TransactionBuilder(account, {
     fee: BASE_FEE,
@@ -237,12 +237,12 @@ export async function createBountyOnChain(reward: string, deadline: string, titl
     .build();
 
   const sim = await server.simulateTransaction(tx);
-  if (rpc.Api.isSimulationError(sim)) throw new Error(`Creation simulation failed: ${sim.error}`);
+  if (rpc.Api.isSimulationError(sim)) throw new Error(`Query publication simulation failed: ${sim.error}`);
   
   tx = rpc.assembleTransaction(tx, sim).build();
   const result = await signAndSubmit(tx);
   
-  // Extract the bounty ID from the simulation or result (sim is easier)
+  // Extract the query ID from the simulation or result (sim is easier)
   if (sim.result) {
     const id = StellarSdk.scValToNative(sim.result.retval);
     return { id, xdr: result.hash };
@@ -255,7 +255,7 @@ export async function createTrustline() {
   const address = await getConnectedAddress();
   if (!address) throw new Error("Wallet not connected");
 
-  console.log("Creating Trustline for Classic BNTY...");
+  console.log("Creating Trustline for Classic WRKC...");
   const account = await server.getAccount(address);
 
   const tx = new TransactionBuilder(account, {
@@ -264,7 +264,7 @@ export async function createTrustline() {
   })
     .addOperation(
       Operation.changeTrust({
-        asset: BNTY_ASSET,
+        asset: WRKC_ASSET,
       })
     )
     .setTimeout(TimeoutInfinite)
@@ -275,7 +275,7 @@ export async function createTrustline() {
 
 export async function simulateSwapXlmToBnty(amount: string) {
   // Pure Testnet: Preparing token acquisition.
-  console.log(`Stellar Testnet: Acquiring ${amount} BNTY for transaction...`);
+  console.log(`Stellar Testnet: Acquiring ${amount} WRKC for transaction...`);
   return { success: true };
 }
 
@@ -283,7 +283,7 @@ export async function useFaucet() {
   const address = await getConnectedAddress();
   if (!address) throw new Error("Wallet not connected");
 
-  console.log("Requesting Classic BNTY from Faucet...");
+  console.log("Requesting Classic WRKC from Faucet...");
   
   // We'll use a server-side route to issue tokens from our new issuer
   const res = await fetch("/api/faucet", {
@@ -310,9 +310,9 @@ export async function initializeContracts() {
   console.log("Initializing all contracts...");
 
   // 1. Initialize Token
-  const tokenContract = new Contract(CONTRACT_IDS.BOUNTY_TOKEN);
+  const tokenContract = new Contract(CONTRACT_IDS.WRKC_TOKEN);
   let txToken = new TransactionBuilder(account, { fee: BASE_FEE, networkPassphrase: NETWORK_PASSPHRASE })
-    .addOperation(tokenContract.call("initialize", userAddr.toScVal(), nativeToScVal(7, { type: "u32" }), nativeToScVal("BountyToken", { type: "string" }), nativeToScVal("BNTY", { type: "string" })))
+    .addOperation(tokenContract.call("initialize", userAddr.toScVal(), nativeToScVal(7, { type: "u32" }), nativeToScVal("WorkCounterToken", { type: "string" }), nativeToScVal("WRKC", { type: "string" })))
     .setTimeout(TimeoutInfinite).build();
   
   try {
@@ -327,7 +327,7 @@ export async function initializeContracts() {
   } catch (e) { console.log("Token init skipped or failed."); }
 
   // 2. Initialize Board
-  const boardContract = new Contract(CONTRACT_IDS.BOUNTY_BOARD);
+  const boardContract = new Contract(CONTRACT_IDS.QUERY_BOARD);
   let txBoard = new TransactionBuilder(account, { fee: BASE_FEE, networkPassphrase: NETWORK_PASSPHRASE })
     .addOperation(boardContract.call("initialize", Address.fromString(CONTRACT_IDS.ESCROW).toScVal(), userAddr.toScVal()))
     .setTimeout(TimeoutInfinite).build();
@@ -346,7 +346,7 @@ export async function initializeContracts() {
   // 3. Initialize Escrow
   const escrowContract = new Contract(CONTRACT_IDS.ESCROW);
   let txEscrow = new TransactionBuilder(account, { fee: BASE_FEE, networkPassphrase: NETWORK_PASSPHRASE })
-    .addOperation(escrowContract.call("initialize", Address.fromString(CONTRACT_IDS.BOUNTY_TOKEN).toScVal(), Address.fromString(CONTRACT_IDS.BOUNTY_BOARD).toScVal()))
+    .addOperation(escrowContract.call("initialize", Address.fromString(CONTRACT_IDS.WRKC_TOKEN).toScVal(), Address.fromString(CONTRACT_IDS.QUERY_BOARD).toScVal()))
     .setTimeout(TimeoutInfinite).build();
 
   try {
